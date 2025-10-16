@@ -24,11 +24,12 @@ var apiCfg apiConfig
 mux := http.NewServeMux()
 fileHandler := http.FileServer(http.Dir("./"))
 mux.Handle("/app/",apiCfg.middlewareMetricsInc(http.StripPrefix("/app",fileHandler)))
-mux.HandleFunc("GET /healthz",healthHandler)
-mux.HandleFunc("GET /metrics",apiCfg.hitsHandler)
-mux.HandleFunc("POST /reset",apiCfg.resethitsHandler)
+mux.HandleFunc("GET /api/healthz",healthHandler)
+mux.HandleFunc("GET /admin/metrics",apiCfg.hitsHandler)
+mux.HandleFunc("POST /admin/reset",apiCfg.resethitsHandler)
+mux.HandleFunc("POST /api/validate_chirp", validatechirpHandler)
 srv := &http.Server{
-	Addr: ":8080",
+	Addr: ":8081",
 	Handler: mux,
 }
 err := srv.ListenAndServe()
