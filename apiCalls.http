@@ -1,8 +1,31 @@
-POST http://localhost:8080/admin/reset
+POST http://localhost:8081/admin/reset
 ###
-GET http://localhost:8080/app/
+GET http://localhost:8081/app/
 ###
-GET http://localhost:8080/admin/metrics
+GET http://localhost:8081/admin/metrics
 ###
-GET http://localhost:8080/api/healthz
+GET http://localhost:8081/api/healthz
 ###
+POST http://localhost:8081/api/validate_chirp
+content-type: application/json
+
+{
+    "body": "Hey there I am wanting to put your foot in my butt for sexual pleasure. Please respond with date and time of meetup. Also cost if that is required."
+}
+###
+POST http://localhost:8081/api/validate_chirp
+content-type: application/json
+
+{
+    "body": "test"
+}
+###
+GET http://localhost:8081/api/validate_chirp
+###
+POST http://localhost:8081/api/validate_chirp
+content-type: application/json
+
+{
+    "body": "I hear Mastodon is better than Chirpy. sharbert I need to migrate",
+     "extra": "this should be ignored"
+}

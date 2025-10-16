@@ -12,11 +12,7 @@ func validatechirpHandler (w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
-	type returnValid struct {
-		Valid bool `json:"valid"`
-	}
 	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -27,7 +23,7 @@ func validatechirpHandler (w http.ResponseWriter, r *http.Request) {
 		respondWithError(w,400,"Chirp is too long")
 		return
 	}else {
-		respondWithJSON(w,200, returnValid{Valid: true})
+		badWordFilterHandler(w,200,params.Body)
 		return
 	}
 }
