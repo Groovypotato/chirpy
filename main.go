@@ -1,13 +1,20 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"sync/atomic"
+
+	"github.com/groovypotato/chirpy/internal/database"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	dbQueries *database.Queries
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -20,7 +27,14 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 
 
 func main () {
+godotenv.Load()
+dbURL := os.Getenv("DB_URL")
+db, err := sql.Open("postgres", dbURL)
+if err != nil {
+	fmt.Printf("error opening SQL database: %s",err)
+}
 var apiCfg apiConfig
+apiCfg.dbQueries = database.New(db)
 mux := http.NewServeMux()
 fileHandler := http.FileServer(http.Dir("./"))
 mux.Handle("/app/",apiCfg.middlewareMetricsInc(http.StripPrefix("/app",fileHandler)))
@@ -32,7 +46,7 @@ srv := &http.Server{
 	Addr: ":8081",
 	Handler: mux,
 }
-err := srv.ListenAndServe()
+err = srv.ListenAndServe()
 if err != nil  {
 	 fmt.Printf("error when starting server:%v ",err)
 }
