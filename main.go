@@ -15,6 +15,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
 	dbQueries      *database.Queries
+	platform       string
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -33,6 +34,7 @@ func main() {
 	}
 	var apiCfg apiConfig
 	apiCfg.dbQueries = database.New(db)
+	apiCfg.platform = os.Getenv("PLATFORM")
 	mux := http.NewServeMux()
 	fileHandler := http.FileServer(http.Dir("./"))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", fileHandler)))
@@ -42,7 +44,7 @@ func main() {
 	mux.HandleFunc("POST /api/validate_chirp", validatechirpHandler)
 	mux.HandleFunc("POST /api/users", apiCfg.userHandler)
 	srv := &http.Server{
-		Addr:    ":8081",
+		Addr:    ":8080",
 		Handler: mux,
 	}
 	err = srv.ListenAndServe()
