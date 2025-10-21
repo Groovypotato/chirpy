@@ -6,28 +6,20 @@ GET http://localhost:8080/admin/metrics
 ###
 GET http://localhost:8080/api/healthz
 ###
-POST http://localhost:8080/api/validate_chirp
+POST http://localhost:8080/api/chirps
 content-type: application/json
 
 {
-    "body": "Hey there I am wanting to put your foot in my butt for sexual pleasure. Please respond with date and time of meetup. Also cost if that is required."
+    "body": "Hey there I am wanting to put your foot in my butt for sexual pleasure.",
+    "user_id": "0a770795-2eb5-4bfa-b4d2-e172053f2345"
 }
 ###
-POST http://localhost:8080/api/validate_chirp
+POST http://localhost:8080/api/chirps
 content-type: application/json
 
 {
-    "body": "test"
-}
-###
-GET http://localhost:8080/api/validate_chirp
-###
-POST http://localhost:8080/api/validate_chirp
-content-type: application/json
-
-{
-    "body": "I hear Mastodon is better than Chirpy. sharbert I need to migrate",
-     "extra": "this should be ignored"
+    "body": "test",
+    "user_id": "0a770795-2eb5-4bfa-b4d2-e172053f2345"
 }
 ###
 POST http://localhost:8080/api/users
@@ -36,3 +28,10 @@ content-type: application/json
 {
     "email": "gleasoncr@gmail.com"
 }
+
+###
+GET http://localhost:8080/api/chirps
+
+###
+
+GET http://localhost:8080/api/chirps/715d2e21-3718-47e5-afc9-317be54be347
