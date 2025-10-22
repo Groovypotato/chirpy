@@ -3,41 +3,41 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/groovypotato/chirpy/internal/auth"
+	"github.com/groovypotato/chirpy/internal/database"
 )
-
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
-}
 
 func (cfg *apiConfig) userHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		respondWithError(w, 405, "method not allowed")
 		return
 	}
-	type userEmail struct {
-		Email string `json:"email"`
-	}
+	var user database.User
 	decoder := json.NewDecoder(r.Body)
-	uemail := userEmail{}
-	err := decoder.Decode(&uemail)
+	uinput := userInput{}
+	err := decoder.Decode(&uinput)
 	if err != nil {
-		respondWithError(w, 400, "Something went wrong")
+		respondWithError(w, 400, "Something went wrong: issue decoding")
 		return
 	}
-	user, err := cfg.dbQueries.GetUser(r.Context(), uemail.Email)
+	_, err = cfg.dbQueries.GetUser(r.Context(), uinput.Email)
 	if err != nil {
-		user, err = cfg.dbQueries.CreateUser(r.Context(), uemail.Email)
+		hashedPassword, err := auth.HashPassword(uinput.Password)
 		if err != nil {
-			respondWithError(w, 400, "something went wrong")
+			respondWithError(w, 400, "something went wrong: issue hashing password")
 			return
 		}
-		respondWithJSON(w, 201, User{ID: user.ID, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt, Email: user.Email})
+		params := database.CreateUserParams{
+			Email:          uinput.Email,
+			HashedPassword: hashedPassword,
+		}
+		user, err = cfg.dbQueries.CreateUser(r.Context(), params)
+		if err != nil {
+			respondWithError(w, 400, "something went wrong:issue creating user")
+			return
+		}
+		respondWithJSON(w, 201, userResp{ID: user.ID, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt, Email: user.Email})
 	} else {
 		respondWithError(w, 409, "user already exists")
 		return

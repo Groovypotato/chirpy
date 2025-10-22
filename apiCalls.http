@@ -26,7 +26,8 @@ POST http://localhost:8080/api/users
 content-type: application/json
 
 {
-    "email": "gleasoncr@gmail.com"
+    "email": "gleasoncr@gmail.com",
+    "password": "password"
 }
 
 ###
