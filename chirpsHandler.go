@@ -31,7 +31,7 @@ func (cfg *apiConfig) createChirpsHandler(w http.ResponseWriter, r *http.Request
 	chirp := Chirp{}
 	err := decoder.Decode(&chirp)
 	if err != nil {
-		respondWithError(w, 400, "Something went wrong")
+		respondWithError(w, 400, "Something went wrong with the decoder")
 		return
 	}
 	valid, code, post := validateChirpHandler(chirp.Body)
@@ -44,7 +44,8 @@ func (cfg *apiConfig) createChirpsHandler(w http.ResponseWriter, r *http.Request
 		}
 		vchirp, err := cfg.dbQueries.CreateChirp(r.Context(), parms)
 		if err != nil {
-			respondWithError(w, 400, "something went wrong")
+			errorString := err.Error()
+			respondWithError(w, 400, errorString)
 		}
 		respondWithJSON(w, 201, VChirp{ID: vchirp.ID, CreatedAt: vchirp.CreatedAt, UpdatedAt: vchirp.UpdatedAt, Body: vchirp.Body, UserId: vchirp.UserID})
 	}

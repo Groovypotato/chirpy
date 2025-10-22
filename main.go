@@ -61,7 +61,7 @@ func main() {
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.getSingleChirpsHandler)
 	mux.HandleFunc("POST /api/login", apiCfg.loginHandler)
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8082",
 		Handler: mux,
 	}
 	err = srv.ListenAndServe()
