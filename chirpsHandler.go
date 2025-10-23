@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/groovypotato/chirpy/internal/auth"
 	"github.com/groovypotato/chirpy/internal/database"
 )
 
 type Chirp struct {
-	Body   string    `json:"body"`
-	USERID uuid.UUID `json:"user_id"`
+	Body string `json:"body"`
 }
 
 type VChirp struct {
@@ -27,9 +27,19 @@ func (cfg *apiConfig) createChirpsHandler(w http.ResponseWriter, r *http.Request
 		respondWithError(w, 405, "method not allowed")
 		return
 	}
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+	uid, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	chirp := Chirp{}
-	err := decoder.Decode(&chirp)
+	err = decoder.Decode(&chirp)
 	if err != nil {
 		respondWithError(w, 400, "Something went wrong with the decoder")
 		return
@@ -37,18 +47,20 @@ func (cfg *apiConfig) createChirpsHandler(w http.ResponseWriter, r *http.Request
 	valid, code, post := validateChirpHandler(chirp.Body)
 	if !valid {
 		respondWithError(w, code, post)
-	} else {
-		parms := database.CreateChirpParams{
-			Body:   post,
-			UserID: chirp.USERID,
-		}
-		vchirp, err := cfg.dbQueries.CreateChirp(r.Context(), parms)
-		if err != nil {
-			errorString := err.Error()
-			respondWithError(w, 400, errorString)
-		}
-		respondWithJSON(w, 201, VChirp{ID: vchirp.ID, CreatedAt: vchirp.CreatedAt, UpdatedAt: vchirp.UpdatedAt, Body: vchirp.Body, UserId: vchirp.UserID})
+		return
 	}
+
+	parms := database.CreateChirpParams{
+		Body:   post,
+		UserID: uid,
+	}
+	vchirp, err := cfg.dbQueries.CreateChirp(r.Context(), parms)
+	if err != nil {
+		errorString := err.Error()
+		respondWithError(w, 400, errorString)
+		return
+	}
+	respondWithJSON(w, 201, VChirp{ID: vchirp.ID, CreatedAt: vchirp.CreatedAt, UpdatedAt: vchirp.UpdatedAt, Body: vchirp.Body, UserId: vchirp.UserID})
 }
 
 func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, r *http.Request) {

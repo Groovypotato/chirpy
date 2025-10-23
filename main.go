@@ -18,11 +18,13 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	dbQueries      *database.Queries
 	platform       string
+	jwtSecret      string
 }
 
 type userInput struct {
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Password         string `json:"password"`
+	Email            string `json:"email"`
+	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }
 
 type userResp struct {
@@ -30,6 +32,7 @@ type userResp struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
+	Token     string    `json:"token"`
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -49,6 +52,7 @@ func main() {
 	var apiCfg apiConfig
 	apiCfg.dbQueries = database.New(db)
 	apiCfg.platform = os.Getenv("PLATFORM")
+	apiCfg.jwtSecret = os.Getenv("JWT_SECRET")
 	mux := http.NewServeMux()
 	fileHandler := http.FileServer(http.Dir("./"))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", fileHandler)))

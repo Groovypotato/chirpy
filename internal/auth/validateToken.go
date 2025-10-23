@@ -12,10 +12,16 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.Nil, err
 	}
-	newType := token.Claims.(*jwt.RegisteredClaims)
-	newU, err := uuid.Parse(newType.Subject)
+	if !token.Valid {
+		return uuid.Nil, jwt.ErrTokenInvalidClaims
+	}
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return uuid.Nil, jwt.ErrTokenInvalidClaims
+	}
+	u, err := uuid.Parse(claims.Subject)
 	if err != nil {
 		return uuid.Nil, err
 	}
-	return newU, nil
+	return u, nil
 }

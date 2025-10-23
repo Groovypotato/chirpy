@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func makeToken(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+func MakeToken(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	currentTime := time.Now().Local().UTC()
 	expires := currentTime.Add(expiresIn)
 	tokenSecretByte := []byte(tokenSecret)
