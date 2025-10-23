@@ -18,3 +18,7 @@ WHERE token = $1;
 UPDATE refresh_tokens
 SET revoked_at = NOW(), updated_at = NOW(), expires_at = NOW()
 WHERE token = $1;
+
+-- name: GetUserRefreshToken :one
+SELECT * FROM refresh_tokens
+WHERE user_id = $1;

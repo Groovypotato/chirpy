@@ -22,17 +22,17 @@ type apiConfig struct {
 }
 
 type userInput struct {
-	Password         string `json:"password"`
-	Email            string `json:"email"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type userResp struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
-	Token     string    `json:"token"`
-	RefreshToken string `json:"refresh_token"`
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 type Token struct {
@@ -65,6 +65,7 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", apiCfg.resetHandler)
 	mux.HandleFunc("POST /api/users", apiCfg.userHandler)
 	mux.HandleFunc("POST /api/chirps", apiCfg.createChirpsHandler)
+	mux.HandleFunc("PUT /api/users", apiCfg.changeUPasswordHandler)
 	mux.HandleFunc("GET /api/chirps", apiCfg.getAllChirpsHandler)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.getSingleChirpsHandler)
 	mux.HandleFunc("POST /api/login", apiCfg.loginHandler)

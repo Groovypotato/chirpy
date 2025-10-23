@@ -23,5 +23,5 @@ DELETE FROM users;
 
 -- name: ChangePassword :exec
 UPDATE users
-SET hashed_password = $1
+SET hashed_password = $1, email = $3
 WHERE id = $2;
