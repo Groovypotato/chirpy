@@ -21,6 +21,9 @@ func respondWithError(w http.ResponseWriter, code int, msg string) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
 		w.WriteHeader(code)
 		w.Write(dat)
 }
@@ -33,6 +36,9 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 			respondWithError(w,400,"Something went wrong")
 		}
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
 		w.WriteHeader(code)
 		w.Write(dat)
 }

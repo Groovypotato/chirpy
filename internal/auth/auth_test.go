@@ -3,16 +3,14 @@ package auth
 import (
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 func TestTokenCreation(t *testing.T) {
 	uid := uuid.New()
-	d := 30 * time.Hour
 	secret := "4$KGXaO8+LNuOIKjqQoi/PIg$GOk8JWFN4zQXqs+bdrixjOgF7lt8dsjwYI0U/Y5E4+w"
-	result, err := MakeToken(uid, secret, d)
+	result, err := MakeToken(uid, secret)
 	if err != nil {
 		t.Errorf("error making token: %s", err.Error())
 	}

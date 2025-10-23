@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/groovypotato/chirpy/internal/auth"
+	"github.com/groovypotato/chirpy/internal/database"
 )
 
 func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,16 +31,24 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 401, "Unauthorized")
 		return
 	}
-	if uinput.ExpiresInSeconds <= 0 {
-		uinput.ExpiresInSeconds = 3600
-	} else if uinput.ExpiresInSeconds > 3600 {
-		uinput.ExpiresInSeconds = 3600
-	}
-	dur := time.Duration(uinput.ExpiresInSeconds) * time.Second
-	token, err := auth.MakeToken(vuser.ID, cfg.jwtSecret, dur)
+	rexpire := time.Now().AddDate(0,0,60)
+	token, err := auth.MakeToken(vuser.ID, cfg.jwtSecret)
 	if err != nil {
 		respondWithError(w, 401, "Unauthorized")
 		return
 	}
-	respondWithJSON(w, 200, userResp{ID: vuser.ID, CreatedAt: vuser.CreatedAt, UpdatedAt: vuser.UpdatedAt, Email: vuser.Email, Token: token})
+	rtoken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, 500, "unable to make refresh token")
+	}
+	_, err = cfg.dbQueries.CreateRefreshToken(r.Context(),database.CreateRefreshTokenParams{
+		Token: rtoken,
+		UserID: vuser.ID,
+		ExpiresAt: rexpire,
+	})
+	if err != nil {
+		respondWithError(w, 500, "unable to insert refresh token in db")
+		return
+	}
+	respondWithJSON(w, 200, userResp{ID: vuser.ID, CreatedAt: vuser.CreatedAt, UpdatedAt: vuser.UpdatedAt, Email: vuser.Email, Token: token, RefreshToken: rtoken})
 }
