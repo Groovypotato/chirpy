@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +23,9 @@ type VChirp struct {
 	Body      string    `json:"body"`
 	UserId    uuid.UUID `json:"user_id"`
 }
+
+
+
 
 func (cfg *apiConfig) createChirpsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -68,9 +73,46 @@ func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, r *http.Request
 		respondWithError(w, 405, "method not allowed")
 		return
 	}
+	aid := r.URL.Query().Get("author_id")
+	srt := r.URL.Query().Get("sort")
+	if len(aid) > 0 {
+		uid, err := uuid.Parse(aid)
+		if err != nil {
+			respondWithError(w,400,err.Error())
+			return
+		}
+		userChirps, err := cfg.dbQueries.GetUserChirps(r.Context(),uid)
+		if err != nil {
+		respondWithError(w, 400, err.Error())
+		return
+ 		}
+		resp := make([]VChirp, 0, len(userChirps))
+		for _, c := range userChirps {
+			resp = append(resp, VChirp{
+				ID:        c.ID,
+				CreatedAt: c.CreatedAt,
+				UpdatedAt: c.UpdatedAt,
+				Body:      c.Body,
+				UserId:    c.UserID,
+			})
+		}
+		if strings.EqualFold(srt,"desc"){
+			sort.SliceStable(resp, func(i, j int) bool {
+				return resp[i].CreatedAt.After(resp[j].CreatedAt)
+			})
+		} else {
+			sort.SliceStable(resp, func(i, j int) bool {
+				return resp[i].CreatedAt.Before(resp[j].CreatedAt)
+			})
+		}
+		respondWithJSON(w, 200, resp)
+		return
+
+	}
 	allChirps, err := cfg.dbQueries.GetAllChirps(r.Context())
 	if err != nil {
-		respondWithError(w, 400, "something went wrong")
+		respondWithError(w, 400, err.Error())
+		return
 	}
 	resp := make([]VChirp, 0, len(allChirps))
 	for _, c := range allChirps {
@@ -82,8 +124,15 @@ func (cfg *apiConfig) getAllChirpsHandler(w http.ResponseWriter, r *http.Request
 			UserId:    c.UserID,
 		})
 	}
-
-	// prefer your helper for consistency
+	if strings.EqualFold(srt,"desc"){
+			sort.SliceStable(resp, func(i, j int) bool {
+				return resp[i].CreatedAt.After(resp[j].CreatedAt)
+			})
+		} else {
+			sort.SliceStable(resp, func(i, j int) bool {
+				return resp[i].CreatedAt.Before(resp[j].CreatedAt)
+			})
+		}
 	respondWithJSON(w, 200, resp)
 
 }
