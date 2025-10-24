@@ -96,7 +96,7 @@ func (cfg *apiConfig) getSingleChirpsHandler(w http.ResponseWriter, r *http.Requ
 	id, err := uuid.Parse(r.PathValue("chirpID"))
 
 	if err != nil {
-		respondWithError(w, 400, "something went wrong")
+		respondWithError(w, 400, "something went wrong: unable to parse chirp id")
 		return
 	}
 	vchirp, err := cfg.dbQueries.GetOneChirp(r.Context(), id)
@@ -106,4 +106,44 @@ func (cfg *apiConfig) getSingleChirpsHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	respondWithJSON(w, 200, VChirp{ID: vchirp.ID, CreatedAt: vchirp.CreatedAt, UpdatedAt: vchirp.UpdatedAt, Body: vchirp.Body, UserId: vchirp.UserID})
+}
+
+func (cfg *apiConfig) deleteChirps(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		respondWithError(w, 405, "method not allowed")
+		return
+	}
+	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		respondWithError(w, 400, "something went wrong: unable to parse chirp id")
+		return
+	}
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+	uid, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorized")
+		return
+	}
+	vchirp, err := cfg.dbQueries.GetOneChirp(r.Context(), chirpID)
+	if err != nil {
+		respondWithError(w, 404, "chirp not found")
+		return
+	}
+	if uid != vchirp.UserID {
+		respondWithError(w, 403, "Unauthorized: this is not your chirp")
+		return
+	}
+	err = cfg.dbQueries.DeleteChirps(r.Context(), chirpID)
+	if err != nil {
+		respondWithError(w, 400, "something whent wrong: unable to delete chirp")
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+	w.WriteHeader(204)
 }
