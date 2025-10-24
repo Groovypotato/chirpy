@@ -39,6 +39,14 @@ type Token struct {
 	TOKEN string `json:"token"`
 }
 
+type WebhookEvent struct {
+    Event string `json:"event"`
+    Data  struct {
+        UserID string `json:"user_id"`
+    } `json:"data"`
+}
+
+
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cfg.fileserverHits.Add(1)
@@ -72,6 +80,7 @@ func main() {
 	mux.HandleFunc("POST /api/login", apiCfg.loginHandler)
 	mux.HandleFunc("POST /api/refresh", apiCfg.refreshHandler)
 	mux.HandleFunc("POST /api/revoke", apiCfg.refreshRevokeHandler)
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.upgradeChirpyRed)
 	srv := &http.Server{
 		Addr:    ":8082",
 		Handler: mux,
