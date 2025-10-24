@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/groovypotato/chirpy/internal/auth"
 	"github.com/groovypotato/chirpy/internal/database"
 )
@@ -42,5 +43,29 @@ func (cfg *apiConfig) userHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 409, "user already exists")
 		return
 	}
+}
+
+func (cfg *apiConfig) upgradeChirpyRed(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		respondWithError(w, 405, "method not allowed")
+		return
+	}
+	decoder := json.NewDecoder(r.Body)
+	whook := WebhookEvent{}
+	err := decoder.Decode(&whook)
+	if err != nil {
+		respondWithError(w, 400, "Something went wrong: issue decoding")
+		return
+	}
+	if whook.Event != "user.upgraded" {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		w.WriteHeader(204)
+	}
+	uid, err := uuid.Parse(whook.Data.UserID)
+
+	err = cfg.dbQueries.UpgradeUserChirpyRed(r.Context(), uid)
 
 }

@@ -25,3 +25,8 @@ DELETE FROM users;
 UPDATE users
 SET hashed_password = $1, email = $3
 WHERE id = $2;
+
+-- name: UpgradeUserChirpyRed :exec
+UPDATE users
+SET is_chirpy_red = TRUE
+WHERE id = $1;
