@@ -56,9 +56,18 @@ func (cfg *apiConfig) upgradeChirpyRed(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 405, "method not allowed")
 		return
 	}
+	uapi, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w,401,err.Error())
+		return
+	}
+	if !strings.EqualFold(uapi,cfg.polkakey){
+		respondWithError(w, 401, "invalid API Key")
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	whook := WebhookEvent{}
-	err := decoder.Decode(&whook)
+	err = decoder.Decode(&whook)
 	if err != nil {
 		respondWithError(w, 400, "Something went wrong: issue decoding")
 		return

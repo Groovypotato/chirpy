@@ -19,6 +19,7 @@ type apiConfig struct {
 	dbQueries      *database.Queries
 	platform       string
 	jwtSecret      string
+	polkakey	   string
 }
 
 type userInput struct {
@@ -66,6 +67,7 @@ func main() {
 	apiCfg.dbQueries = database.New(db)
 	apiCfg.platform = os.Getenv("PLATFORM")
 	apiCfg.jwtSecret = os.Getenv("JWT_SECRET")
+	apiCfg.polkakey = os.Getenv("POLKA_KEY")
 	mux := http.NewServeMux()
 	fileHandler := http.FileServer(http.Dir("./"))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", fileHandler)))

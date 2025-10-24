@@ -21,6 +21,5 @@ func (cfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK\n"))
 	cfg.fileserverHits.Store(0)
 }
