@@ -50,5 +50,12 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "unable to insert refresh token in db")
 		return
 	}
-	respondWithJSON(w, 200, userResp{ID: vuser.ID, CreatedAt: vuser.CreatedAt, UpdatedAt: vuser.UpdatedAt, Email: vuser.Email, Token: token, RefreshToken: rtoken})
+	respondWithJSON(w, 200, userResp{ID: vuser.ID,
+		CreatedAt: vuser.CreatedAt, 
+		UpdatedAt: vuser.UpdatedAt, 
+		Email: vuser.Email, 
+		Token: token, 
+		RefreshToken: rtoken,
+		IsChirpyRed: vuser.IsChirpyRed.Bool,
+	})
 }

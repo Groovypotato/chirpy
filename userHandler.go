@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/groovypotato/chirpy/internal/auth"
@@ -38,7 +39,12 @@ func (cfg *apiConfig) userHandler(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, 400, "something went wrong:issue creating user")
 			return
 		}
-		respondWithJSON(w, 201, userResp{ID: user.ID, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt, Email: user.Email})
+		respondWithJSON(w, 201, userResp{ID: user.ID, 
+			CreatedAt: user.CreatedAt, 
+			UpdatedAt: user.UpdatedAt, 
+			Email: user.Email,
+			IsChirpyRed: user.IsChirpyRed.Bool,
+		})
 	} else {
 		respondWithError(w, 409, "user already exists")
 		return
@@ -65,7 +71,21 @@ func (cfg *apiConfig) upgradeChirpyRed(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	}
 	uid, err := uuid.Parse(whook.Data.UserID)
-
+	if err != nil {
+		respondWithError(w,400,err.Error())
+		return
+	}
 	err = cfg.dbQueries.UpgradeUserChirpyRed(r.Context(), uid)
-
+	if err != nil {
+		if !strings.Contains(err.Error(), "not found") {
+			respondWithError(w,404,"user not found")
+			return
+		}
+		respondWithError(w,400,"error upgrading user")
+	}
+	w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		w.WriteHeader(204)
 }

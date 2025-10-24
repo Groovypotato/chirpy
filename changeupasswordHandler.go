@@ -65,6 +65,7 @@ func (cfg *apiConfig) changeUPasswordHandler(w http.ResponseWriter, r *http.Requ
 		Email:        vuser.Email,
 		Token:        newJWT,
 		RefreshToken: rtoken.Token,
+		IsChirpyRed: vuser.IsChirpyRed.Bool,
 	})
 
 }
